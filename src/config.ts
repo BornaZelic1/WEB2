@@ -6,6 +6,10 @@ export interface Config {
     connectionString: string;
     ssl: boolean;
   };
+  auth0: {
+    issuerBaseUrl: string;
+    audience: string;
+  };
 }
 
 type Env = Record<string, string | undefined>;
@@ -43,6 +47,10 @@ export function loadConfig(env: Env = process.env): Config {
     db: {
       connectionString: required(env, 'DATABASE_URL'),
       ssl: env.DATABASE_SSL === 'true',
+    },
+    auth0: {
+      issuerBaseUrl: required(env, 'AUTH0_ISSUER_BASE_URL'),
+      audience: required(env, 'AUTH0_AUDIENCE'),
     },
   };
 }

@@ -13,18 +13,29 @@
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/server.js",
     "typecheck": "tsc",
-    "check:auth0": "tsx --env-file=.env scripts/check-auth0.ts"
+    "test": "node --env-file=.env --import tsx --test --test-concurrency=1 \"test/**/*.test.ts\"",
+    "check:auth0": "tsx --env-file=.env scripts/check-auth0.ts",
+    "smoke": "tsx --env-file=.env scripts/smoke.ts"
   },
   "dependencies": {
     "ejs": "^7.0.2",
     "express": "^5.3.0",
+    "express-oauth2-jwt-bearer": "^1.11.0",
     "helmet": "^8.3.0",
-    "pg": "^8.23.1"
+    "pg": "^8.23.1",
+    "qrcode": "^1.5.4"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
     "@types/node": "^24.19.2",
     "@types/pg": "^8.23.1",
+    "@types/pngjs": "^6.0.5",
+    "@types/qrcode": "^1.5.6",
+    "@types/supertest": "^7.2.1",
+    "jose": "^6.2.14",
+    "jsqr": "^1.4.0",
+    "pngjs": "^7.0.0",
+    "supertest": "^7.3.1",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"
   },

@@ -16,6 +16,11 @@ export interface PassDto {
   status: PassStatus;
 }
 
+export interface PassInput {
+  name: string;
+  document: string;
+}
+
 export interface PassStats {
   total: number;
   active: number;

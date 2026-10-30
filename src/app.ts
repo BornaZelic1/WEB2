@@ -1,11 +1,12 @@
 import path from 'node:path';
 import express from 'express';
-import type { ErrorRequestHandler, Express } from 'express';
+import type { ErrorRequestHandler, Express, Handler } from 'express';
 import helmet from 'helmet';
 import type { Pool } from 'pg';
 import type { Config } from './config.js';
 import { createPassesRepo } from './db/passesRepo.js';
 import { formatDateTime } from './lib/format.js';
+import { apiRouter } from './routes/api.js';
 import { healthRouter } from './routes/health.js';
 import { homeRouter } from './routes/home.js';
 import { infoRouter } from './routes/info.js';
@@ -13,6 +14,7 @@ import { infoRouter } from './routes/info.js';
 export interface AppDeps {
   config: Config;
   pool: Pool;
+  checkJwt: Handler;
 }
 
 const rootDir = path.resolve(import.meta.dirname, '..');
@@ -26,7 +28,7 @@ const errorHandler: ErrorRequestHandler = (err, _req, res, next) => {
   res.status(500).render('error', { title: 'Something went wrong' });
 };
 
-export function createApp({ config, pool }: AppDeps): Express {
+export function createApp({ config, pool, checkJwt }: AppDeps): Express {
   const app = express();
   const passes = createPassesRepo(pool);
 
@@ -46,6 +48,7 @@ export function createApp({ config, pool }: AppDeps): Express {
   app.use('/static', express.static(path.join(rootDir, 'public'), { maxAge: config.isProduction ? '1h' : 0 }));
 
   app.use(healthRouter(pool));
+  app.use('/passes', apiRouter({ passes, checkJwt, baseUrl: config.baseUrl }));
   app.use(homeRouter(passes));
   app.use(infoRouter(passes));
 
