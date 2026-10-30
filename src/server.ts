@@ -7,18 +7,18 @@ const config = loadConfig();
 const pool = createPool(config.db);
 await ensureSchema(pool);
 
-const app = createApp({ pool });
+const app = createApp({ config, pool });
 
 const server = app.listen(config.port, (err) => {
   if (err) {
-    console.error('Server se ne može pokrenuti:', err.message);
+    console.error('Failed to start server:', err.message);
     process.exit(1);
   }
-  console.log(`Server sluša na portu ${config.port} – ${config.baseUrl}`);
+  console.log(`Server listening on port ${config.port} – ${config.baseUrl}`);
 });
 
 function shutdown(signal: NodeJS.Signals): void {
-  console.log(`${signal} – gasim server…`);
+  console.log(`${signal} received – shutting down…`);
   server.close(() => {
     pool.end().finally(() => process.exit(0));
   });

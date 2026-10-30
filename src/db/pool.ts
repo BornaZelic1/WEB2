@@ -9,7 +9,7 @@ export function createPool(db: Config['db']): pg.Pool {
   });
 
   pool.on('error', (err) => {
-    console.error('Neočekivana greška na konekciji prema bazi:', err.message);
+    console.error('Unexpected error on idle database client:', err.message);
   });
 
   return pool;

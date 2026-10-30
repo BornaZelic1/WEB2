@@ -2,7 +2,7 @@
   "name": "web2-passes",
   "version": "1.0.0",
   "private": true,
-  "description": "Digitalne propusnice – WEB2 projekt 1 (OIDC + OAuth2 Client Credentials, Auth0, Render)",
+  "description": "Digital passes – WEB2 project 1 (OIDC + OAuth2 Client Credentials, Auth0, Render)",
   "type": "module",
   "engines": {
     "node": ">=24 <25"
@@ -16,7 +16,9 @@
     "check:auth0": "tsx --env-file=.env scripts/check-auth0.ts"
   },
   "dependencies": {
+    "ejs": "^7.0.2",
     "express": "^5.3.0",
+    "helmet": "^8.3.0",
     "pg": "^8.23.1"
   },
   "devDependencies": {

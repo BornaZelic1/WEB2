@@ -1,0 +1,21 @@
+<%- include('partials/head') %>
+<h1>Digital Passes</h1>
+
+<section class="stats">
+  <div class="card stat">
+    <span class="stat-value"><%= stats.total %></span>
+    <span class="stat-label">Total passes</span>
+  </div>
+  <div class="card stat">
+    <span class="stat-value"><%= stats.active %></span>
+    <span class="stat-label">Active passes</span>
+  </div>
+</section>
+
+<% if (!locals.user) { %>
+<section class="card cta">
+  <p>Log in to view, cancel and delete passes.</p>
+  <a class="button" href="/login">Log in</a>
+</section>
+<% } %>
+<%- include('partials/foot') %>

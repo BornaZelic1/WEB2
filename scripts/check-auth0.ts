@@ -22,7 +22,7 @@ interface JwtPayload {
 function requireEnv(name: string): string {
   const value = process.env[name]?.trim();
   if (!value) {
-    console.error(`Nedostaje env varijabla ${name}`);
+    console.error(`Missing environment variable ${name}`);
     process.exit(2);
   }
   return value;
@@ -86,18 +86,18 @@ function inspectToken(label: string, token: string, expectedScopes: string[], cl
   const aud = ([] as string[]).concat(payload.aud ?? []);
 
   check(header.alg === 'RS256', `${label}: alg = ${header.alg}`);
-  check(header.kid !== undefined && jwksKids.includes(header.kid), `${label}: kid postoji u JWKS`);
-  check(payload.iss === `${issuer}/`, `${label}: iss ispravan`);
+  check(header.kid !== undefined && jwksKids.includes(header.kid), `${label}: kid found in JWKS`);
+  check(payload.iss === `${issuer}/`, `${label}: iss is correct`);
   check(aud.includes(audience), `${label}: aud = ${aud.join(', ')}`);
   check(payload.gty === 'client-credentials', `${label}: gty = ${payload.gty}`);
-  check(payload.azp === clientId, `${label}: azp odgovara client_id`);
+  check(payload.azp === clientId, `${label}: azp matches client_id`);
   check(
     scopes.join(' ') === [...expectedScopes].sort().join(' '),
     `${label}: scope = "${scopes.join(' ')}"`,
-    `očekivano "${expectedScopes.join(' ')}"`,
+    `expected "${expectedScopes.join(' ')}"`,
   );
   if (payload.exp !== undefined && payload.iat !== undefined) {
-    info(`${label}: token vrijedi ${(payload.exp - payload.iat) / 3600} h`);
+    info(`${label}: token lifetime ${(payload.exp - payload.iat) / 3600} h`);
   }
 }
 
@@ -106,44 +106,44 @@ console.log(`\nAuth0: ${issuer}\nAudience: ${audience}\nBASE_URL: ${baseUrl}`);
 console.log('\n1) Tenant (OIDC discovery + JWKS)');
 {
   const res = await fetch(`${issuer}/.well-known/openid-configuration`);
-  check(res.ok, `discovery dostupan (${res.status})`);
+  check(res.ok, `discovery document reachable (${res.status})`);
   const discovery = (await res.json()) as { issuer: string; jwks_uri: string };
   check(discovery.issuer === `${issuer}/`, `issuer = ${discovery.issuer}`);
   const jwks = (await (await fetch(discovery.jwks_uri)).json()) as { keys: { kid: string }[] };
   jwksKids = jwks.keys.map((k) => k.kid);
-  check(jwksKids.length > 0, `JWKS ima ${jwksKids.length} ključ(a)`);
+  check(jwksKids.length > 0, `JWKS contains ${jwksKids.length} key(s)`);
 }
 
-console.log('\n2) M2M "Automat" – oba opsega');
+console.log('\n2) M2M "Automat" – both scopes');
 {
   const { status, data } = await requestToken(automatClientId, automatClientSecret);
-  check(status === 200 && !!data.access_token, `token izdan (${status})`, describeError(data));
+  check(status === 200 && !!data.access_token, `token issued (${status})`, describeError(data));
   if (data.access_token) {
     inspectToken('Automat', data.access_token, ['read:passes', 'create:passes'], automatClientId);
   }
 }
 
-console.log('\n3) M2M "Automat-readonly" – samo read:passes');
+console.log('\n3) M2M "Automat-readonly" – read:passes only');
 if (readonlyClientId && readonlyClientSecret) {
   const { status, data } = await requestToken(readonlyClientId, readonlyClientSecret);
-  check(status === 200 && !!data.access_token, `token izdan (${status})`, describeError(data));
+  check(status === 200 && !!data.access_token, `token issued (${status})`, describeError(data));
   if (data.access_token) {
     inspectToken('Readonly', data.access_token, ['read:passes'], readonlyClientId);
   }
 
   const denied = await requestToken(readonlyClientId, readonlyClientSecret, 'create:passes');
-  check(denied.status === 403, `zahtjev za create:passes odbijen (${denied.status} ${denied.data.error})`);
+  check(denied.status === 403, `request for create:passes denied (${denied.status} ${denied.data.error})`);
 } else {
-  info('READONLY_CLIENT_ID/SECRET nisu postavljeni – preskačem');
+  info('READONLY_CLIENT_ID/SECRET not set – skipping');
 }
 
-console.log('\n4) Regular Web App "Passes Web" – vjerodajnice');
+console.log('\n4) Regular Web App "Passes Web" – credentials');
 {
   const { status, data } = await requestToken(webClientId, webClientSecret);
   if (status === 200) {
-    bad('Passes Web dobiva M2M token za API – ukloni mu pristup (API → Application Access)');
+    bad('Passes Web receives an M2M token for the API – revoke its access (API → Application Access)');
   } else {
-    check(status === 403, `vjerodajnice ispravne, bez pristupa API-ju (${status} ${data.error})`, describeError(data));
+    check(status === 403, `credentials valid, no API access (${status} ${data.error})`, describeError(data));
   }
 }
 
@@ -163,7 +163,7 @@ console.log(`\n5) Passes Web – Allowed Callback URL (${baseUrl}/callback)`);
   const mismatch = /callback url mismatch|error=/i.test(location);
   check(
     res.status === 302 && !mismatch,
-    `authorize preusmjerava na login (${res.status} → ${location.split('?')[0]})`,
+    `authorize redirects to login (${res.status} → ${location.split('?')[0]})`,
     location.slice(0, 200),
   );
 }
@@ -176,12 +176,12 @@ console.log(`\n6) Passes Web – Allowed Logout URL (${baseUrl})`);
   const location = res.headers.get('location') ?? '';
   check(
     res.status === 302 && location.startsWith(baseUrl),
-    `logout vraća na aplikaciju (${res.status} → ${location || '(nema)'})`,
-    `${baseUrl} nije u Allowed Logout URLs`,
+    `logout returns to the app (${res.status} → ${location || '(none)'})`,
+    `${baseUrl} is not in Allowed Logout URLs`,
   );
 }
 
-console.log('\n7) Registracija isključena (Disable Sign Ups)');
+console.log('\n7) Sign-ups disabled (Disable Sign Ups)');
 {
   const res = await fetch(`${issuer}/dbconnections/signup`, {
     method: 'POST',
@@ -194,8 +194,8 @@ console.log('\n7) Registracija isključena (Disable Sign Ups)');
     }),
   });
   const text = await res.text();
-  check(/signup is disabled|operation_not_allowed/i.test(text), `registracija odbijena (${res.status})`, text.slice(0, 200));
+  check(/signup is disabled|operation_not_allowed/i.test(text), `sign-up rejected (${res.status})`, text.slice(0, 200));
 }
 
-console.log(failures === 0 ? '\n✅ Sve provjere prošle.\n' : `\n❌ Neuspjelih provjera: ${failures}\n`);
+console.log(failures === 0 ? '\n✅ All checks passed.\n' : `\n❌ Failed checks: ${failures}\n`);
 process.exit(failures === 0 ? 0 : 1);

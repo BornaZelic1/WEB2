@@ -9,7 +9,7 @@ export function healthRouter(pool: Pool): Router {
       await pool.query('SELECT 1');
       res.json({ status: 'ok' });
     } catch (err) {
-      console.error('Health check – baza nedostupna:', err instanceof Error ? err.message : err);
+      console.error('Health check failed – database unavailable:', err instanceof Error ? err.message : err);
       res.status(503).json({ status: 'unavailable' });
     }
   });

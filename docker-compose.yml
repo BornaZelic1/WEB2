@@ -36,6 +36,12 @@ services:
         - action: sync
           path: ./src
           target: /app/src
+        - action: sync
+          path: ./views
+          target: /app/views
+        - action: sync
+          path: ./public
+          target: /app/public
         - action: rebuild
           path: package.json
         - action: rebuild

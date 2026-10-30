@@ -1,0 +1,18 @@
+<%- include('partials/head') %>
+<article class="card pass">
+  <header class="pass-header">
+    <h1>Pass</h1>
+    <span class="badge badge-<%= pass.status.toLowerCase() %>"><%= pass.status %></span>
+  </header>
+  <dl class="pass-details">
+    <dt>Name</dt>
+    <dd><%= pass.name %></dd>
+    <dt>Document</dt>
+    <dd><%= pass.document %></dd>
+    <dt>Issued at</dt>
+    <dd><time datetime="<%= pass.issued_at.toISOString() %>"><%= formatDateTime(pass.issued_at) %></time></dd>
+    <dt>Pass ID</dt>
+    <dd class="mono"><%= pass.id %></dd>
+  </dl>
+</article>
+<%- include('partials/foot') %>

@@ -11,6 +11,8 @@ FROM deps AS dev
 ENV NODE_ENV=development
 COPY tsconfig.json ./
 COPY src ./src
+COPY views ./views
+COPY public ./public
 EXPOSE 3000
 CMD ["npm", "run", "dev"]
 
@@ -24,6 +26,8 @@ ENV NODE_ENV=production
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 COPY --from=build /app/dist ./dist
+COPY views ./views
+COPY public ./public
 USER node
 EXPOSE 3000
 CMD ["node", "dist/server.js"]
