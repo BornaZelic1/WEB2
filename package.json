@@ -15,7 +15,8 @@
     "typecheck": "tsc",
     "test": "node --env-file=.env --import tsx --test --test-concurrency=1 \"test/**/*.test.ts\"",
     "check:auth0": "tsx --env-file=.env scripts/check-auth0.ts",
-    "smoke": "tsx --env-file=.env scripts/smoke.ts"
+    "smoke": "tsx --env-file=.env scripts/smoke.ts",
+    "automat": "tsx --env-file=.env src/task2/run.ts"
   },
   "dependencies": {
     "ejs": "^7.0.2",
