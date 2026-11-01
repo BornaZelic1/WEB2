@@ -95,5 +95,23 @@ check((await api('/')).status === 200, 'GET / → 200');
 check((await api(`/info/${id}`)).status === 200, 'GET /info/<new id> → 200');
 check((await api(`/info/${unknownId}`)).status === 404, 'GET /info/<unknown id> → 404');
 
+console.log('\nOIDC login');
+const login = await api('/login');
+const authorizeUrl = new URL(login.headers.get('location') ?? 'about:blank');
+check(login.status === 302, `GET /login → 302 (${login.status})`);
+check(authorizeUrl.origin === new URL(issuer).origin && authorizeUrl.pathname === '/authorize', `redirects to ${authorizeUrl.origin}${authorizeUrl.pathname}`);
+check(authorizeUrl.searchParams.get('redirect_uri') === `${baseUrl}/callback`, `redirect_uri = ${authorizeUrl.searchParams.get('redirect_uri')}`);
+check(authorizeUrl.searchParams.get('response_type') === 'code', `response_type = ${authorizeUrl.searchParams.get('response_type')}`);
+check(authorizeUrl.searchParams.get('client_id') === requireEnv('AUTH0_CLIENT_ID'), 'client_id matches Passes Web');
+
+const loginPage = await fetch(authorizeUrl, { redirect: 'manual' });
+const loginPageLocation = loginPage.headers.get('location') ?? '';
+check(loginPage.status === 302 && loginPageLocation.startsWith('/u/login'), `Auth0 shows its login page (${loginPage.status} → ${loginPageLocation.split('?')[0]})`);
+
+const adminAnonymous = await api(`/admin/passes/${id}/cancel`, { method: 'POST' });
+check(adminAnonymous.status === 303 && adminAnonymous.headers.get('location') === '/login', 'anonymous cancel → 303 /login');
+const stillActive = (await (await api(`/passes/${id}`, {}, readonlyToken)).json()) as { status?: string };
+check(stillActive.status === 'ACTIVE', `pass still ACTIVE after anonymous cancel (${stillActive.status})`);
+
 console.log(failures === 0 ? '\n✅ All smoke checks passed.\n' : `\n❌ Failed checks: ${failures}\n`);
 process.exit(failures === 0 ? 0 : 1);

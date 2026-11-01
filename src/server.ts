@@ -1,5 +1,6 @@
 import { createApp } from './app.js';
 import { createJwtCheck } from './auth/m2m.js';
+import { createOidc } from './auth/oidc.js';
 import { loadConfig } from './config.js';
 import { createPool } from './db/pool.js';
 import { ensureSchema } from './db/schema.js';
@@ -8,7 +9,12 @@ const config = loadConfig();
 const pool = createPool(config.db);
 await ensureSchema(pool);
 
-const app = createApp({ config, pool, checkJwt: createJwtCheck(config.auth0) });
+const app = createApp({
+  config,
+  pool,
+  checkJwt: createJwtCheck(config.auth0),
+  oidc: createOidc(config),
+});
 
 const server = app.listen(config.port, (err) => {
   if (err) {

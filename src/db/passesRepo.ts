@@ -3,8 +3,11 @@ import type { PassInput, PassRow, PassStats } from '../types.js';
 
 export interface PassesRepo {
   stats(): Promise<PassStats>;
+  list(): Promise<PassRow[]>;
   findById(id: string): Promise<PassRow | null>;
   create(id: string, input: PassInput): Promise<PassRow>;
+  cancel(id: string): Promise<boolean>;
+  remove(id: string): Promise<boolean>;
 }
 
 const PASS_COLUMNS = 'id, name, document, issued_at, status';
@@ -18,6 +21,11 @@ export function createPassesRepo(pool: Pool): PassesRepo {
            FROM passes`,
       );
       return rows[0] ?? { total: 0, active: 0 };
+    },
+
+    async list() {
+      const { rows } = await pool.query<PassRow>(`SELECT ${PASS_COLUMNS} FROM passes ORDER BY issued_at DESC, id`);
+      return rows;
     },
 
     async findById(id) {
@@ -35,6 +43,16 @@ export function createPassesRepo(pool: Pool): PassesRepo {
         throw new Error('Insert did not return a row');
       }
       return row;
+    },
+
+    async cancel(id) {
+      const { rowCount } = await pool.query(`UPDATE passes SET status = 'CANCELLED' WHERE id = $1`, [id]);
+      return rowCount === 1;
+    },
+
+    async remove(id) {
+      const { rowCount } = await pool.query('DELETE FROM passes WHERE id = $1', [id]);
+      return rowCount === 1;
     },
   };
 }

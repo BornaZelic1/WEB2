@@ -17,5 +17,51 @@
   <p>Log in to view, cancel and delete passes.</p>
   <a class="button" href="/login">Log in</a>
 </section>
+<% } else { %>
+<section class="passes" id="passes">
+  <h2>Passes</h2>
+
+  <% if (notice) { %>
+  <p class="notice" role="status"><%= notice %></p>
+  <% } %>
+
+  <% if (passes.length === 0) { %>
+  <p class="card empty">No passes have been issued yet.</p>
+  <% } else { %>
+  <div class="table-wrap card">
+    <table class="pass-table">
+      <thead>
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Document</th>
+          <th scope="col">Issued at</th>
+          <th scope="col">Status</th>
+          <th scope="col"><span class="visually-hidden">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% passes.forEach((pass) => { %>
+        <tr>
+          <td><a href="/info/<%= pass.id %>"><%= pass.name %></a></td>
+          <td><%= pass.document %></td>
+          <td><time datetime="<%= pass.issued_at.toISOString() %>"><%= formatDateTime(pass.issued_at) %></time></td>
+          <td><span class="badge badge-<%= pass.status.toLowerCase() %>"><%= pass.status %></span></td>
+          <td class="actions">
+            <% if (pass.status === 'ACTIVE') { %>
+            <form method="post" action="/admin/passes/<%= pass.id %>/cancel" data-confirm="Cancel this pass?">
+              <button type="submit" class="button button-secondary">Cancel</button>
+            </form>
+            <% } %>
+            <form method="post" action="/admin/passes/<%= pass.id %>/delete" data-confirm="Permanently delete this pass?">
+              <button type="submit" class="button button-danger">Delete</button>
+            </form>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</section>
 <% } %>
 <%- include('partials/foot') %>

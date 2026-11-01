@@ -9,7 +9,10 @@ export interface Config {
   auth0: {
     issuerBaseUrl: string;
     audience: string;
+    clientId: string;
+    clientSecret: string;
   };
+  sessionSecret: string;
 }
 
 type Env = Record<string, string | undefined>;
@@ -28,6 +31,14 @@ function parsePort(value: string | undefined): number {
     throw new Error(`Invalid PORT: ${value}`);
   }
   return port;
+}
+
+function parseSessionSecret(env: Env): string {
+  const secret = required(env, 'SESSION_SECRET');
+  if (secret.length < 32) {
+    throw new Error('SESSION_SECRET must be at least 32 characters long');
+  }
+  return secret;
 }
 
 function parseBaseUrl(env: Env): string {
@@ -51,6 +62,9 @@ export function loadConfig(env: Env = process.env): Config {
     auth0: {
       issuerBaseUrl: required(env, 'AUTH0_ISSUER_BASE_URL'),
       audience: required(env, 'AUTH0_AUDIENCE'),
+      clientId: required(env, 'AUTH0_CLIENT_ID'),
+      clientSecret: required(env, 'AUTH0_CLIENT_SECRET'),
     },
+    sessionSecret: parseSessionSecret(env),
   };
 }

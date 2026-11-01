@@ -12,7 +12,8 @@ export function infoRouter(passes: PassesRepo): Router {
     const pass = isUuid(id) ? await passes.findById(id) : null;
 
     if (!pass) {
-      res.status(404).render('not-found', {
+      res.status(404).render('message', {
+        code: 404,
         title: 'Pass not found',
         message: 'No pass exists with this identifier.',
         noindex: true,

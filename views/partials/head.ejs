@@ -6,11 +6,20 @@
   <% if (locals.noindex) { %><meta name="robots" content="noindex"><% } %>
   <title><%= title %> · Digital Passes</title>
   <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/confirm.js" defer></script>
 </head>
 <body>
   <header class="site-header">
     <div class="container header-inner">
       <a class="brand" href="/">Digital Passes</a>
+      <nav class="user-nav">
+        <% if (locals.user) { %>
+          <span class="user-name"><%= user.name || user.email %></span>
+          <a class="button button-secondary" href="/logout">Log out</a>
+        <% } else { %>
+          <a class="button" href="/login">Log in</a>
+        <% } %>
+      </nav>
     </div>
   </header>
   <main class="container">
