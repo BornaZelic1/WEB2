@@ -26,7 +26,8 @@ function required(env: Env, name: string): string {
 }
 
 function parsePort(value: string | undefined): number {
-  const port = Number(value ?? 3000);
+  const raw = value?.trim();
+  const port = raw ? Number(raw) : 3000;
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
     throw new Error(`Invalid PORT: ${value}`);
   }
